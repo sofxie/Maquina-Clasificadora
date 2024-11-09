@@ -1,6 +1,8 @@
 from machine import Pin, time_pulse_us
 import utime
+import socket
 import time
+import threading
 
 # Pines para el sensor de color TCS3200
 s0 = Pin(14, Pin.OUT)
@@ -74,28 +76,57 @@ def detectar_madurez():
     
     if 200 < rojo < 400 and rojo > azul > verde and azul < 150 and verde < 150:
         print("Estado: Tomate Maduro (Rojo Intenso)")
+        estado = "Maduro"
     elif 70 < rojo < 99 and 59 < verde < 90 and 60 < azul < 90:
-        print("Estado: Negro (Muy Bajo Reflejo)")
+        print("Estado: Tomate Malo")
+        estado = "Malo"
     elif verde > rojo and verde > azul and verde > 20:
         print("Estado: Tomate Verde")
-    elif rojo < 15 and verde < 20:
-        print("Estado: Tomate en Maduración (Verde Claro)")
-    elif 15 <= rojo <= 20 and verde < 15:
-        print("Estado: Tomate a Medio Madurar (Amarillento)")
-    elif 20 < rojo < 30 and verde < 10:
-        print("Estado: Tomate Casi Maduro (Naranja)")
+        estado = "Verde"
     else:
         print("Estado: Indeterminado o Color No Registrado")
+        estado = "Indeterminado"
+    return estado
 
-# Bucle principal
-while True:
-    # Detectar madurez del tomate
-    detectar_madurez()
+        
+def recibir_mensajes(client_socket):
+    try:
+        while True:
+            respuesta = client_socket.recv(1024)
+            if not respuesta:
+                print("Conexión cerrada por el servidor.")
+                break
+            if respuesta.decode() == "color":
+                # Detectar madurez del tomate
+                estado = detectar_madurez()
     
-    # Medir la distancia
-    distancia = medir_distancia()
-    tamano = (80 - distancia * 5) / 5
-    print(f"Tamaño del Tomate : {tamano:.2f} cm")
-    
-    utime.sleep(1)
+                # Medir la distancia
+                distancia = medir_distancia()
+                tamano = (80 - distancia * 5) / 5
+                
+                print(f"Tamaño del Tomate : {tamano:.2f} cm")
+                
+                answer = f"{estado},{tamano}"
+                client_socket.send(answer.encode())
+            print(f"Servidor: {respuesta.decode()}")
+    except Exception as e:
+        print(f"Error recibiendo datos: {e}")
+    finally:
+        client_socket.close()
+        
+def connect_to_server(host='192.168.124.6', port=65432): #Cambiar IP
+    # Crear un socket de tipo TCP
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    client_socket.connect((host, port))
+    print("Conectado al servidor")
  
+ 
+    hilo_recepcion = threading.Thread(target=recibir_mensajes, args=(client_socket,))
+    hilo_recepcion.start()
+
+    hilo_recepcion.join()
+
+if __name__ == '__main__':
+    # Esperar un momento para asegurarse de que el servidor esté listo
+    time.sleep(2)
+    connect_to_server()
