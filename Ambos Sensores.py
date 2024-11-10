@@ -2,7 +2,6 @@ from machine import Pin, time_pulse_us
 import utime
 import socket
 import time
-import threading
 
 # Pines para el sensor de color TCS3200
 s0 = Pin(14, Pin.OUT)
@@ -88,7 +87,7 @@ def detectar_madurez():
         estado = "Indeterminado"
     return estado
 
-        
+# Función para manejar la comunicación con el servidor
 def recibir_mensajes(client_socket):
     try:
         while True:
@@ -113,18 +112,16 @@ def recibir_mensajes(client_socket):
         print(f"Error recibiendo datos: {e}")
     finally:
         client_socket.close()
-        
-def connect_to_server(host='192.168.124.6', port=65432): #Cambiar IP
+
+# Función para conectar al servidor
+def connect_to_server(host='192.168.124.6', port=65432): # Cambiar IP
     # Crear un socket de tipo TCP
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((host, port))
     print("Conectado al servidor")
- 
- 
-    hilo_recepcion = threading.Thread(target=recibir_mensajes, args=(client_socket,))
-    hilo_recepcion.start()
 
-    hilo_recepcion.join()
+    # Iniciar la función para manejar mensajes
+    recibir_mensajes(client_socket)
 
 if __name__ == '__main__':
     # Esperar un momento para asegurarse de que el servidor esté listo
