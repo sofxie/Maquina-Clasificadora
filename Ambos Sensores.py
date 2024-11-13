@@ -2,6 +2,7 @@ from machine import Pin, time_pulse_us
 import utime
 import socket
 import time
+import network
 
 # Pines para el sensor de color TCS3200
 s0 = Pin(14, Pin.OUT)
@@ -20,6 +21,25 @@ s1.value(1)
 
 # Velocidad del sonido en cm/us
 SOUND_SPEED = 340  # en m/s, ajustado a cm/us
+
+# Socket
+host = '192.168.20.41' # Cambiar IP
+port = 65432
+
+# Setup Wi-Fi
+ssid = "-WIFI-" # Nombre del WIFI
+password = "2017..enlaceinternet." # Clave del WIFI
+
+def conectar_wifi():
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
+    wlan.connect(ssid, password)
+    
+    while not wlan.isconnected():
+        print("Conectando a Wi-Fi...")
+        time.sleep(1)
+
+    print("Conectado a Wi-Fi:", wlan.ifconfig())
 
 # Función para medir frecuencia de color
 def get_pulse_count():
@@ -65,7 +85,6 @@ def medir_distancia():
     distance_cm = SOUND_SPEED * ultrason_duration / 20000  # Calcula la distancia en cm
     return distance_cm
 
-# Función para detectar el color y madurez del tomate
 def detectar_madurez():
     rojo = get_rojo()
     verde = get_verde()
@@ -112,18 +131,29 @@ def recibir_mensajes(client_socket):
         print(f"Error recibiendo datos: {e}")
     finally:
         client_socket.close()
+        
+def iniciar_cliente():
+    try:
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect((host, port))
+        print("Conectado al servidor")
+        
+        recibir_mensajes(client_socket)
+        
+    except OSError as e:
+        print(f"Error en la conexión: {e}")
+        print("Intentando reconectar en 5 segundos...")
+        time.sleep(5)  # Espera antes de intentar reconectar
 
-# Función para conectar al servidor
-def connect_to_server(host='192.168.124.6', port=65432): # Cambiar IP
-    # Crear un socket de tipo TCP
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((host, port))
-    print("Conectado al servidor")
+    finally:
+        client_socket.close()
 
-    # Iniciar la función para manejar mensajes
-    recibir_mensajes(client_socket)
-
+# Bucle principal
 if __name__ == '__main__':
     # Esperar un momento para asegurarse de que el servidor esté listo
     time.sleep(2)
-    connect_to_server()
+    
+    conectar_wifi()
+    
+    # Ejecutar el cliente
+    iniciar_cliente()
