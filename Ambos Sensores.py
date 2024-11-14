@@ -23,23 +23,34 @@ s1.value(1)
 SOUND_SPEED = 340  # en m/s, ajustado a cm/us
 
 # Socket
-host = '192.168.20.41' # Cambiar IP
+host = '172.20.10.12' # Cambiar IP
 port = 65432
 
 # Setup Wi-Fi
-ssid = "-WIFI-" # Nombre del WIFI
-password = "2017..enlaceinternet." # Clave del WIFI
+ssid = "Sof" # Nombre del WIFI
+password = "88888888" # Clave del WIFI
 
-def conectar_wifi():
-    wlan = network.WLAN(network.STA_IF)
-    wlan.active(True)
-    wlan.connect(ssid, password)
-    
-    while not wlan.isconnected():
-        print("Conectando a Wi-Fi...")
-        time.sleep(1)
-
-    print("Conectado a Wi-Fi:", wlan.ifconfig())
+class WIFI:
+    def conectarWIFI():
+        try: 
+            wlan = network.WLAN(network.STA_IF)
+            wlan.active(False)  # Desactiva el Wi-Fi
+            time.sleep(1)       # Pausa un segundo
+            wlan.active(True)    # Reactiva el Wi-Fi
+            wlan.connect(ssid, password)
+            
+            retry_count = 0
+            while not wlan.isconnected() and retry_count < 10:
+                print(f"[WLAN] Intentando conectar... intento {retry_count + 1}")
+                time.sleep(1)
+                retry_count += 1
+            
+            if wlan.isconnected():
+                print("Conexión exitosa a Wi-Fi:", wlan.ifconfig())
+            else:
+                print("Error: No se pudo conectar a la red Wi-Fi.")
+        except Exception as e:
+            print(f"Error al intentar conectar Wi-Fi: {e}")
 
 # Función para medir frecuencia de color
 def get_pulse_count():
@@ -123,9 +134,10 @@ def recibir_mensajes(client_socket):
                 tamano = (80 - distancia * 5) / 5
                 
                 print(f"Tamaño del Tomate : {tamano:.2f} cm")
-                
+                tamano = int(tamano)
                 answer = f"{estado},{tamano}"
-                client_socket.send(answer.encode())
+                print(f"{answer}")
+                client_socket.send(f"{answer}".encode())
             print(f"Servidor: {respuesta.decode()}")
     except Exception as e:
         print(f"Error recibiendo datos: {e}")
@@ -136,24 +148,26 @@ def iniciar_cliente():
     try:
         client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         client_socket.connect((host, port))
-        print("Conectado al servidor")
+        print("Conexión al servidor establecida.")
         
-        recibir_mensajes(client_socket)
+        # Recibir mensaje de bienvenida del servidor
+        respuesta = client_socket.recv(1024)
+        print("Respuesta del servidor:", respuesta.decode())
         
+        # Entrar en un bucle para recibir y enviar mensajes de forma continua
+        while True:
+            recibir_mensajes(client_socket)
+            time.sleep(1)  # Evita bucle rápido
+            
     except OSError as e:
-        print(f"Error en la conexión: {e}")
-        print("Intentando reconectar en 5 segundos...")
-        time.sleep(5)  # Espera antes de intentar reconectar
-
+        print(f"Error en la conexión al socket: {e}")
     finally:
-        client_socket.close()
+        if client_socket:
+            client_socket.close()
+            print("Conexión cerrada con el servidor.")
 
-# Bucle principal
 if __name__ == '__main__':
-    # Esperar un momento para asegurarse de que el servidor esté listo
-    time.sleep(2)
+    # Intentar conectar al Wi-Fi
+    WIFI.conectarWIFI()
     
-    conectar_wifi()
-    
-    # Ejecutar el cliente
     iniciar_cliente()
