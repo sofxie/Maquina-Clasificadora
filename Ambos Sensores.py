@@ -2,7 +2,7 @@ from machine import Pin, time_pulse_us
 import utime
 import socket
 import time
-import threading
+import network
 
 # Pines para el sensor de color TCS3200
 s0 = Pin(14, Pin.OUT)
@@ -21,6 +21,36 @@ s1.value(1)
 
 # Velocidad del sonido en cm/us
 SOUND_SPEED = 340  # en m/s, ajustado a cm/us
+
+# Socket
+host = '172.20.10.12' # Cambiar IP
+port = 65432
+
+# Setup Wi-Fi
+ssid = "Sof" # Nombre del WIFI
+password = "88888888" # Clave del WIFI
+
+class WIFI:
+    def conectarWIFI():
+        try: 
+            wlan = network.WLAN(network.STA_IF)
+            wlan.active(False)  # Desactiva el Wi-Fi
+            time.sleep(1)       # Pausa un segundo
+            wlan.active(True)    # Reactiva el Wi-Fi
+            wlan.connect(ssid, password)
+            
+            retry_count = 0
+            while not wlan.isconnected() and retry_count < 10:
+                print(f"[WLAN] Intentando conectar... intento {retry_count + 1}")
+                time.sleep(1)
+                retry_count += 1
+            
+            if wlan.isconnected():
+                print("Conexión exitosa a Wi-Fi:", wlan.ifconfig())
+            else:
+                print("Error: No se pudo conectar a la red Wi-Fi.")
+        except Exception as e:
+            print(f"Error al intentar conectar Wi-Fi: {e}")
 
 # Función para medir frecuencia de color
 def get_pulse_count():
@@ -66,7 +96,6 @@ def medir_distancia():
     distance_cm = SOUND_SPEED * ultrason_duration / 20000  # Calcula la distancia en cm
     return distance_cm
 
-# Función para detectar el color y madurez del tomate
 def detectar_madurez():
     rojo = get_rojo()
     verde = get_verde()
@@ -88,7 +117,7 @@ def detectar_madurez():
         estado = "Indeterminado"
     return estado
 
-        
+# Función para manejar la comunicación con el servidor
 def recibir_mensajes(client_socket):
     try:
         while True:
@@ -105,28 +134,40 @@ def recibir_mensajes(client_socket):
                 tamano = (80 - distancia * 5) / 5
                 
                 print(f"Tamaño del Tomate : {tamano:.2f} cm")
-                
+                tamano = int(tamano)
                 answer = f"{estado},{tamano}"
-                client_socket.send(answer.encode())
+                print(f"{answer}")
+                client_socket.send(f"{answer}".encode())
             print(f"Servidor: {respuesta.decode()}")
     except Exception as e:
         print(f"Error recibiendo datos: {e}")
     finally:
         client_socket.close()
         
-def connect_to_server(host='192.168.124.6', port=65432): #Cambiar IP
-    # Crear un socket de tipo TCP
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((host, port))
-    print("Conectado al servidor")
- 
- 
-    hilo_recepcion = threading.Thread(target=recibir_mensajes, args=(client_socket,))
-    hilo_recepcion.start()
-
-    hilo_recepcion.join()
+def iniciar_cliente():
+    try:
+        client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        client_socket.connect((host, port))
+        print("Conexión al servidor establecida.")
+        
+        # Recibir mensaje de bienvenida del servidor
+        respuesta = client_socket.recv(1024)
+        print("Respuesta del servidor:", respuesta.decode())
+        
+        # Entrar en un bucle para recibir y enviar mensajes de forma continua
+        while True:
+            recibir_mensajes(client_socket)
+            time.sleep(1)  # Evita bucle rápido
+            
+    except OSError as e:
+        print(f"Error en la conexión al socket: {e}")
+    finally:
+        if client_socket:
+            client_socket.close()
+            print("Conexión cerrada con el servidor.")
 
 if __name__ == '__main__':
-    # Esperar un momento para asegurarse de que el servidor esté listo
-    time.sleep(2)
-    connect_to_server()
+    # Intentar conectar al Wi-Fi
+    WIFI.conectarWIFI()
+    
+    iniciar_cliente()
