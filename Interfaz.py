@@ -1,10 +1,83 @@
 from tkinter import *
 from tkinter import ttk
+import os  # Necesario para verificar la existencia del archivo
 
 class ventana:
-    def __init__(self, size, controlador):
+    def __init__(self, size="1200x800", controlador=None ):
         self.size = size
         self.controlador = controlador
+        self.margenes = {
+            "peq": 0,
+            "mid": 0,
+            "max": 0
+        }
+        # Ruta del archivo de configuración de márgenes
+        self.margenes_file = "margenes.txt"
+
+        # Valores por defecto de los márgenes
+        self.margenes = {"peq": 2, "mid": 6, "max": 17}
+
+        # Cargar márgenes desde el archivo, si existe
+        self.cargar_margenes()
+
+    # Nueva ventana para modificar los márgenes
+    def ventana_cambiar_margenes(self):
+        margen_window = Toplevel()
+        margen_window.title("Configurar Márgenes")
+        margen_window.geometry("300x300")
+
+    # Labels y entradas para los márgenes
+        Label(margen_window, text="Pequeño:").pack(pady=5)
+        peq_entry = Entry(margen_window)
+        peq_entry.insert(0, self.margenes["peq"])
+        peq_entry.pack()
+
+        Label(margen_window, text="Mediano:").pack(pady=5)
+        mid_entry = Entry(margen_window)
+        mid_entry.insert(0, self.margenes["mid"])
+        mid_entry.pack()
+
+        Label(margen_window, text="Máximo (hasta 17 cm):").pack(pady=5)
+        max_entry = Entry(margen_window)
+        max_entry.insert(0, self.margenes["max"])
+        max_entry.pack()
+
+        # Función para guardar los márgenes
+        def guardar():
+            try:
+        # Validar y guardar los nuevos valores
+                peq = int(peq_entry.get())
+                mid = int(mid_entry.get())
+                maximo = int(max_entry.get())
+
+                if 0 <= peq < mid <= maximo <= 17:
+                    self.margenes["peq"] = peq
+                    self.margenes["mid"] = mid
+                    self.margenes["max"] = maximo
+                    self.guardar_margenes()
+                    margen_window.destroy()
+                else:
+                    Label(margen_window, text="¡Valores inválidos!", fg="red").pack()
+
+            except ValueError:
+                Label(margen_window, text="¡Introduce números válidos!", fg="red").pack()
+
+        Button(margen_window, text="Guardar", command=guardar).pack(pady=20)
+
+    # Método para cargar márgenes desde el archivo .txt
+    def cargar_margenes(self):
+        if os.path.exists(self.margenes_file):
+            with open(self.margenes_file, "r") as file:
+                for line in file:
+                    clave, valor = line.strip().split("=")
+                    if clave in self.margenes:
+                        self.margenes[clave] = int(valor)
+
+    # Método para guardar márgenes en el archivo .txt
+    def guardar_margenes(self):
+        with open(self.margenes_file, "w") as file:
+            for clave, valor in self.margenes.items():
+                file.write(f"{clave}={valor}\n")
 
     def resultado(self, estado, tamano):
         self.estado_text.set(f"{estado} {tamano}")
@@ -125,5 +198,8 @@ class ventana:
 
         presult = Label(window, textvariable=self.estado_text, font=("Arial", 50,'bold'), bg="#17820E", fg="white")
         presult.place(x=180, y=380)
+
+        Button(window, text="Configurar Márgenes", font=("Arial", 20), command=self.ventana_cambiar_margenes).place(x=80, y=600)
+
 
         window.mainloop()

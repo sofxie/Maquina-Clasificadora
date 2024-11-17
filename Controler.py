@@ -1,15 +1,35 @@
 import threading
+import importlib
+import Interfaz
+importlib.reload(Interfaz)
 from Interfaz import ventana
+
 from Logica import servidor
+
 
 class controlador:
     def __init__(self, ip, port, tventana):
         self.servidor = servidor(ip, port, self)
-        self.ventana = ventana(tventana, self)
+        self.ventana = ventana(tventana, self)  # Pasar los parámetros correctamente
         self.Tresultado = False  # Variable para almacenar el estado actual
+        print(f"Margenes cargados: {self.ventana.margenes}")
+
+
+    # Inicializar márgenes desde la interfaz
+        self.margenes = self.ventana.margenes
+
+        # Pasar márgenes al servidor lógico
+        self.actualizar_margenes()
+
+    # Método para enviar márgenes actualizados al servidor lógico
+    def actualizar_margenes(self):
+        self.servidor.peq = self.margenes["peq"]
+        self.servidor.mid = self.margenes["mid"]
+        self.servidor.max = self.margenes["max"]
 
     def iniciarVentana(self): # Iniciar Interfaz
         self.ventana.mostrar()
+        self.actualizar_margenes()  # Sincronizar márgenes al iniciar
 
     def iniciarServidor(self):
         server_thread = threading.Thread(target=self.servidor.start_server)
@@ -34,6 +54,5 @@ class controlador:
         self.ventana.resultado(estado,tamano)
 
 if __name__ == "__main__":
-    Controlador = controlador("192.168.12.28", 65432,"1200x800") # Cambiar el IP
+    Controlador = controlador("192.168.0.10", 65432,"1200x800") # Cambiar el IP
     Controlador.ejecutar()
-
