@@ -1,4 +1,10 @@
 |    Fecha    |    Codigo    |        Descripcion        |  Cantidad (Unidad)  |
-  2024-11-20      TOM-002      Tomate Granel Pequeño          3
-  2024-11-20      TOM-002      Tomate Granel Mediano          1
-  2024-11-20      TOM-002      Tomate Granel Grande           1
+  2024-11-21      TOM-001      Tomate Fresco Pequeño          1
+  2024-11-21      TOM-002      Tomate Fresco Mediano          1
+  2024-11-21      TOM-003      Tomate Fresco Grande           1
+  2024-11-21      TOM-004      Tomate Granel Pequeño          1
+  2024-11-21      TOM-004      Tomate Granel Mediano          1
+  2024-11-21      TOM-004      Tomate Granel Grande           1
+  2024-11-21      -------      Producto Defectuoso Pequeño    1
+  2024-11-21      -------      Producto Defectuoso Mediano    1
+  2024-11-21      -------      Producto Defectuoso Grande     1

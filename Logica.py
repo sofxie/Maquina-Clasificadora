@@ -115,7 +115,12 @@ class servidor:
                 for j, cantidad in enumerate(fila):
                     if cantidad > 0:  # Solo escribir si la cantidad es mayor a 0
                         tamano = tamanos[j]
-                        codigo = f"TOM-{i + 1:03}"  # Código dinámico según la categoría
+                        if Estado == "Producto Defectuoso":
+                            codigo = "-------"
+                        elif Estado == "Tomate Granel":
+                            codigo = "TOM-004"
+                        else:
+                            codigo = f"TOM-{j + 1:03}"  # Código dinámico según la categoría
                         nombre = f"{Estado} {tamano}"
                         archivo.write( "\n" + "  "+ str(fecha).ljust(10, " ") + "      " +
                             codigo.rjust(7, "0") + "      " +
@@ -124,7 +129,7 @@ class servidor:
     def PModificarTXT(self):
         print("TXT")
         with open("ResumenPapas.txt", "w") as archivo:
-            estado = ["Papa Fresco Grande", "Papa Fresco Pequeno","Papa Granel Grande","Papa Granel Grande"]
+            estado = ["Papa Fresco Grande", "Papa Granel Grande","Papa Fresco Pequeno","Papa Granel Pequeno"]
             archivo.write("|    Fecha    |    Codigo    |        Descripcion        |  Cantidad (Unidad)  |")
             today = date.today()
             fecha = f"{today.year}-{today.month:02}-{today.day:02}"

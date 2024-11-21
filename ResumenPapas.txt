@@ -1,2 +1,5 @@
 |    Fecha    |    Codigo    |        Descripcion        |  Cantidad (Unidad)  |
-  2024-11-20      PAP-001      Papa Fresco Grande             3
+  2024-11-21      PAP-001      Papa Fresco Grande             2
+  2024-11-21      PAP-002      Papa Granel Grande             1
+  2024-11-21      PAP-003      Papa Fresco Pequeno            2
+  2024-11-21      PAP-004      Papa Granel Pequeno            1
