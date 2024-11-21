@@ -32,6 +32,7 @@ class controlador:
         self.actualizar_margenes()  # Sincronizar márgenes al iniciar
 
     def mostrarArchivo(self, archivo):
+        print("TXTC")
         self.ventana.mostrarResultado(archivo)
 
     def iniciarServidor(self):
@@ -57,5 +58,5 @@ class controlador:
         self.ventana.resultado(estado,tamano)
 
 if __name__ == "__main__":
-    Controlador = controlador("192.168.100.22", 65432,"1200x800") # Cambiar el IP
+    Controlador = controlador("192.168.124.9", 65432,"1200x800") # Cambiar el IP
     Controlador.ejecutar()

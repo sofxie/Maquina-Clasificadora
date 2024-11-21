@@ -67,7 +67,6 @@ class servidor:
 
     def proyectar_respuesta(self, data, Tresultado): # Toma el dato de la raspy
         try:
-            print(Tresultado)
             m, t = data.split(",")  # Separar por coma
             print(f"Estado: {m} Valor: {t}")
             if Tresultado == True:
@@ -123,6 +122,7 @@ class servidor:
                             nombre.ljust(30, " ") +
                             str(cantidad).rjust(2, " "))
     def PModificarTXT(self):
+        print("TXT")
         with open("ResumenPapas.txt", "w") as archivo:
             estado = ["Papa Fresco Grande", "Papa Fresco Pequeno","Papa Granel Grande","Papa Granel Grande"]
             archivo.write("|    Fecha    |    Codigo    |        Descripcion        |  Cantidad (Unidad)  |")
@@ -163,6 +163,7 @@ class servidor:
             self.Total = sum(sum(row) for row in self.TablaTomate)
             self.TamanoT += int(t)
             self.PromedioT = self.TamanoT / self.Total
+            print(f"{self.Total}, {self.PromedioT}, {self.TamanoT}, {Tresultado}")
             self.controlador.mostrarTabla(Tresultado, self.PromedioT, self.TablaTomate)
             self.TModificarTXT()
             self.controlador.mostrarArchivo("ResumenTomate.txt")

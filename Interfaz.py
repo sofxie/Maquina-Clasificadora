@@ -143,7 +143,7 @@ class ventana:
         self.imagenTP = PhotoImage(file = "TablaResultadosP.png")
 
         def analize():
-            self.controlador.enviarmensaje(self.Tresultado,"color") # solicita el analisis
+            self.controlador.enviarmensaje("color") # solicita el analisis
         def TShowTXT():
             wresult = Toplevel()
             wresult.geometry("600x700")
@@ -202,9 +202,6 @@ class ventana:
             # Vincular la actualización a la variable self.tablaP_text
             self.tablaP_text.trace_add("write", actualizar_texto_papas)
 
-        def DarResultados():
-            self.controlador.LAnalisisResultados(self.Tresultado)
-
         def validate_entry_lote(text):
             if len(text) > 14 :
                 return False
@@ -245,7 +242,7 @@ class ventana:
         EPeso = Entry(window, width=40, font=("Arial", 32,'bold'),validate="key",validatecommand=(window.register(validate_entry_peso), "%S"))
         EPeso.place(x=80, y=270)
 
-        AColor = Button(window, text="Analizar",font=("Arial", 30,'bold'),bg="#FCC509", command=lambda:[analize(),DarResultados(),mostrar_mensaje_error()]).place(x=80, y=500)
+        AColor = Button(window, text="Analizar",font=("Arial", 30,'bold'),bg="#FCC509", command=lambda:[analize(),mostrar_mensaje_error()]).place(x=80, y=500)
         ATamano = Button(window, text="Mostrar Resultados",font=("Arial", 30,'bold'),bg="#FCC509", command=lambda:[Pagina_resultado(),mostrar_mensaje_error()]).place(x=720, y=500)
 
         presult = Label(window, textvariable=self.estado_text, font=("Arial", 50,'bold'), bg="#17820E", fg="white")
