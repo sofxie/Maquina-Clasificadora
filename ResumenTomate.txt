@@ -1,0 +1,2 @@
+|    Fecha    |    Codigo    |        Descripcion        |  Cantidad (Unidad)  |
+  2024-11-20      TOM-001      Tomate Fresco Mediano          2

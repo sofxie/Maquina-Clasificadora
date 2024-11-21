@@ -15,7 +15,7 @@ class controlador:
         print(f"Margenes cargados: {self.ventana.margenes}")
 
 
-    # Inicializar márgenes desde la interfaz
+        # Inicializar márgenes desde la interfaz
         self.margenes = self.ventana.margenes
 
         # Pasar márgenes al servidor lógico
@@ -30,6 +30,9 @@ class controlador:
     def iniciarVentana(self): # Iniciar Interfaz
         self.ventana.mostrar()
         self.actualizar_margenes()  # Sincronizar márgenes al iniciar
+
+    def mostrarArchivo(self, archivo):
+        self.ventana.mostrarResultado(archivo)
 
     def iniciarServidor(self):
         server_thread = threading.Thread(target=self.servidor.start_server)
@@ -54,5 +57,5 @@ class controlador:
         self.ventana.resultado(estado,tamano)
 
 if __name__ == "__main__":
-    Controlador = controlador("192.168.0.10", 65432,"1200x800") # Cambiar el IP
+    Controlador = controlador("192.168.100.22", 65432,"1200x800") # Cambiar el IP
     Controlador.ejecutar()

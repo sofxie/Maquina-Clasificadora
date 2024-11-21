@@ -1,4 +1,5 @@
 import socket
+from datetime import date
 
 class servidor:
     def __init__(self, IP, port, controlador):
@@ -103,8 +104,40 @@ class servidor:
             print("Error: formato de datos incorrecto. Se esperaba 'comando,valor'.")
             if self.conn:
                 self.conn.sendall(b"Formato incorrecto, se esperaba 'comando,valor'.\n")
-
+    def TModificarTXT(self):
+        with open("ResumenTomate.txt", "w") as archivo:
+            estado = ["Tomate Fresco", "Tomate Granel", "Producto Defectuoso"]
+            tamanos = ["Pequeño", "Mediano", "Grande"]
+            today = date.today()
+            fecha = f"{today.year}-{today.month:02}-{today.day:02}"
+            archivo.write("|    Fecha    |    Codigo    |        Descripcion        |  Cantidad (Unidad)  |")
+            for i, fila in enumerate(self.TablaTomate):
+                Estado = estado[i]
+                for j, cantidad in enumerate(fila):
+                    if cantidad > 0:  # Solo escribir si la cantidad es mayor a 0
+                        tamano = tamanos[j]
+                        codigo = f"TOM-{i + 1:03}"  # Código dinámico según la categoría
+                        nombre = f"{Estado} {tamano}"
+                        archivo.write( "\n" + "  "+ str(fecha).ljust(10, " ") + "      " +
+                            codigo.rjust(7, "0") + "      " +
+                            nombre.ljust(30, " ") +
+                            str(cantidad).rjust(2, " "))
+    def PModificarTXT(self):
+        with open("ResumenPapas.txt", "w") as archivo:
+            estado = ["Papa Fresco Grande", "Papa Fresco Pequeno","Papa Granel Grande","Papa Granel Grande"]
+            archivo.write("|    Fecha    |    Codigo    |        Descripcion        |  Cantidad (Unidad)  |")
+            today = date.today()
+            fecha = f"{today.year}-{today.month:02}-{today.day:02}"
+            for i, cantidad in enumerate(self.TablaPapa):
+                if cantidad > 0:  # Solo escribir si la cantidad es mayor a 0
+                    codigo = f"PAP-{i + 1:03}"  # Código dinámico según la categoría
+                    nombre = estado[i]
+                    archivo.write( "\n" + "  "+ str(fecha).ljust(10, " ") + "      " +
+                            codigo.rjust(7, "0") + "      " +
+                            nombre.ljust(30, " ") +
+                            str(cantidad).rjust(2, " "))
     def AnalisisResultado(self, Tresultado, estado, tamano, t):
+        Cantidad = 1
         if Tresultado == True:
             if estado == "Tomate Maduro":
                 if tamano == "Pequeño":
@@ -131,20 +164,23 @@ class servidor:
             self.TamanoT += int(t)
             self.PromedioT = self.TamanoT / self.Total
             self.controlador.mostrarTabla(Tresultado, self.PromedioT, self.TablaTomate)
+            self.TModificarTXT()
+            self.controlador.mostrarArchivo("ResumenTomate.txt")
         else:
             if estado == "Papa Bueno" and tamano == "Grande":
-                self.TablaPapa[0] = self.TablaPapa[0] +  1
+                self.TablaPapa[0] += 1
                 self.Total = self.Total + 1
             elif estado == "Producto Defectuoso" and tamano == "Grande":
-                self.TablaPapa[1] = self.TablaPapa[1] +  1
+                self.TablaPapa[1] += 1
                 self.Total = self.Total + 1
             elif estado == "Papa Bueno" and tamano == "Pequeño":
-                self.TablaPapa[2] = self.TablaPapa[2] +  1
+                self.TablaPapa[2] +=  1
                 self.Total = self.Total + 1
             else:
-                self.TablaPapa[3] = self.TablaPapa[3] +  1
+                self.TablaPapa[3] += 1
                 self.Total = self.Total + 1
             self.TamanoT += int(t)
-            print(self.TamanoT)
             self.PromedioP = self.TamanoT / self.Total
             self.controlador.mostrarTabla(Tresultado, self.PromedioP, self.TablaPapa)
+            self.PModificarTXT()
+            self.controlador.mostrarArchivo("ResumenPapas.txt")

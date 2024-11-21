@@ -1,16 +1,12 @@
 from tkinter import *
 from tkinter import ttk
+from tkinter import messagebox
 import os  # Necesario para verificar la existencia del archivo
 
 class ventana:
     def __init__(self, size="1200x800", controlador=None ):
         self.size = size
         self.controlador = controlador
-        self.margenes = {
-            "peq": 0,
-            "mid": 0,
-            "max": 0
-        }
         # Ruta del archivo de configuración de márgenes
         self.margenes_file = "margenes.txt"
 
@@ -88,14 +84,43 @@ class ventana:
             texto_tabla = (f"      {Tabla[0][2]}          {Tabla[1][2]}          {Tabla[2][2]}\n\n"
                            f"      {Tabla[0][1]}          {Tabla[1][1]}          {Tabla[2][1]}\n\n"
                            f"      {Tabla[0][0]}          {Tabla[1][0]}          {Tabla[2][0]}\n"
-                           f"{Promedio:.2f} KG")
+                           f"{Promedio:.2f} CM")
             self.tablaT_text.set(texto_tabla)
         else:
             texto_tabla = (
                 f"          {Tabla[0]}           {Tabla[1]}\n\n"
                 f"          {Tabla[2]}           {Tabla[3]}\n\n"
-                f"{Promedio:.2f} KG")
+                f"{Promedio:.2f} CM")
             self.tablaP_text.set(texto_tabla)
+
+    def mostrarResultado(self, archivo):
+        try:
+            with open(archivo, "r") as archivo_txt:
+                lineas = archivo_txt.readlines()
+                texto_tabla = ""
+                # Iterar sobre las líneas y formatearlas
+                for linea in lineas:
+                    # Separar los elementos por espacios (ajustar según sea necesario)
+                    elementos = linea.strip().split()
+
+                    # Verifica si la línea tiene la cantidad correcta de columnas
+                    if len(elementos) >= 4:
+                        descripcion = " ".join(elementos[2:-1])
+                        cantidad = elementos[-1]  # La última columna es la cantidad
+                        texto_tabla += f"{elementos[0]:<15}{elementos[1]:<15}{descripcion:<30}{cantidad:<20}\n"
+                    else:
+                        texto_tabla += "Error en el formato de la línea\n"
+
+                    # Mostrar el resultado con formato de tabla
+                if archivo == "ResumenTomate.txt":
+                    self.ResumenT_text.set(texto_tabla)
+                else:
+                    self.ResumenP_text.set(texto_tabla)
+        except FileNotFoundError:
+            print(f"Error: El archivo {archivo} no se encuentra.")
+        except Exception as e:
+            print(f"Error al leer el archivo: {e}")
+
 
     def mostrar(self):
         window = Tk()  # diseño de la ventana
@@ -110,11 +135,30 @@ class ventana:
         self.tablaT_text.set("")
         self.tablaP_text = StringVar()
         self.tablaP_text.set("")
+        self.ResumenT_text = StringVar()
+        self.ResumenT_text.set("")
+        self.ResumenP_text = StringVar()
+        self.ResumenP_text.set("")
         self.imagenTT = PhotoImage(file = "TablaResultadosT.png")
         self.imagenTP = PhotoImage(file = "TablaResultadosP.png")
 
         def analize():
             self.controlador.enviarmensaje(self.Tresultado,"color") # solicita el analisis
+        def TShowTXT():
+            wresult = Toplevel()
+            wresult.geometry("600x700")
+            wresult.title("RESUMEN")
+
+            TResumen = Label(wresult, textvariable=self.ResumenT_text, font=("Arial", 15))
+            TResumen.place(x=0,y=0)
+
+        def PShowTXT():
+            tresult = Toplevel()
+            tresult.geometry("700x800")
+            tresult.title("RESUMEN")
+
+            Resumen = Label(tresult, textvariable = self.ResumenP_text, font=("Arial", 15))
+            Resumen.place(x=0,y=0)
 
         def Pagina_resultado(): # Resultados
             wresult = Toplevel()
@@ -135,8 +179,8 @@ class ventana:
             tfondo.create_image(510, 330,image=self.imagenTT)
             rtomate_label = tfondo.create_text(570, 440, text=self.tablaT_text.get(), fill= "black", font=("Arial", 50))
             tfondo.pack()
-
             tfondo.tag_raise(rtomate_label)
+            tbutton = Button(tabtomates, text="Resumen",font=("Arial", 10,'bold'),bg="#FCC509", command=TShowTXT).place(x=0,y=0)
 
             def actualizar_texto_tomate(*args):
                 tfondo.itemconfig(rtomate_label, text=self.tablaT_text.get())
@@ -148,8 +192,8 @@ class ventana:
             cfondo.create_image(510, 330, image=self.imagenTP)
             rpapa_label = cfondo.create_text(570, 465, text=self.tablaP_text.get(), fill= "black", font=("Arial", 60))
             cfondo.pack()
-
             cfondo.tag_raise(rpapa_label)
+            pbutton = Button(tabpapas, text="Resumen", font=("Arial", 10, 'bold'), bg="#FCC509", command=PShowTXT).place(x=0, y=0)
 
             # Actualizar el texto dinámico de papas
             def actualizar_texto_papas(*args):
@@ -185,16 +229,24 @@ class ventana:
             ELote.delete(0, "end")  # Elimina el texto actual en el Entry
             ELote.insert(0, text)  # Inserta el texto en mayúsculas
 
+        def mostrar_mensaje_error():
+            lote = ELote.get().strip()
+            peso = EPeso.get().strip()
+            if not lote or not peso:
+                messagebox.showerror("Error", "Por favor, rellena todos los campos antes de continuar.")
+
+
         TLote = Label(window, text="NÚMERO DE LOTE",  font=("Arial", 32,'bold'),bg="#17820E", fg="white").place(x=80, y=50)
         ELote = Entry(window, width = 40, font=("Arial", 32,'bold'),validate="key",validatecommand=(window.register(validate_entry_lote), "%P"))
         ELote.place(x=80, y=120)
         ELote.bind("<KeyRelease>", convert_to_uppercase)
 
         TPeso = Label(window, text="PESO (KG)",font=("Arial", 32,'bold'),bg="#17820E", fg="white").place(x=80, y=200)
-        EPeso = Entry(window, width=40, font=("Arial", 32,'bold'),validate="key",validatecommand=(window.register(validate_entry_peso), "%S")).place(x=80, y=270)
+        EPeso = Entry(window, width=40, font=("Arial", 32,'bold'),validate="key",validatecommand=(window.register(validate_entry_peso), "%S"))
+        EPeso.place(x=80, y=270)
 
-        AColor = Button(window, text="Analizar",font=("Arial", 30,'bold'),bg="#FCC509", command=lambda:[analize(),DarResultados()]).place(x=80, y=500)
-        ATamano = Button(window, text="Mostrar Resultados",font=("Arial", 30,'bold'),bg="#FCC509", command=Pagina_resultado).place(x=720, y=500)
+        AColor = Button(window, text="Analizar",font=("Arial", 30,'bold'),bg="#FCC509", command=lambda:[analize(),DarResultados(),mostrar_mensaje_error()]).place(x=80, y=500)
+        ATamano = Button(window, text="Mostrar Resultados",font=("Arial", 30,'bold'),bg="#FCC509", command=lambda:[Pagina_resultado(),mostrar_mensaje_error()]).place(x=720, y=500)
 
         presult = Label(window, textvariable=self.estado_text, font=("Arial", 50,'bold'), bg="#17820E", fg="white")
         presult.place(x=180, y=380)
